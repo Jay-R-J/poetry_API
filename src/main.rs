@@ -36,7 +36,11 @@ async fn main() -> std::io::Result<()> {
         cache: AppCache::new(),
     });
 
-    let rate_limit = RateLimit::new(config.rate_limit, config.rate_window_secs, config.trust_proxy);
+    let rate_limit = RateLimit::new(
+        config.rate_limit,
+        config.rate_window_secs,
+        config.trust_proxy,
+    );
     let auth = Auth::new(config.api_key.clone());
 
     let bind = format!("{}:{}", config.host, config.port);

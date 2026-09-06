@@ -97,7 +97,12 @@ async fn inner_run(dir: String) -> Result<(), Box<dyn std::error::Error>> {
     let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM poems")
         .fetch_one(&pool)
         .await?;
-    tracing::info!(total_inserted, removed, library_total = count, "全部导入完成");
+    tracing::info!(
+        total_inserted,
+        removed,
+        library_total = count,
+        "全部导入完成"
+    );
     Ok(())
 }
 
@@ -169,7 +174,11 @@ async fn import_source(
         tx.commit().await?;
 
         if (i + 1) % 50 == 0 {
-            tracing::info!(prefix, progress = format!("{}/{}", i + 1, files.len()), inserted);
+            tracing::info!(
+                prefix,
+                progress = format!("{}/{}", i + 1, files.len()),
+                inserted
+            );
         }
     }
     Ok(inserted)
