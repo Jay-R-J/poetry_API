@@ -2,6 +2,9 @@
 
 一个用 **Rust + Actix Web + SQLite** 构建的古诗词 REST API。开箱自带 116 首带译文的精选诗词，还可一键导入约 13 万首唐宋诗词；自带「每日一诗」网页、全文搜索、限流、API Key 认证与 Swagger 文档。单二进制 + 内嵌 SQLite，无需安装任何数据库，适合直接部署为诗词类产品（小程序、公众号、教育 App、内容网站等）的后端数据服务。
 
+<img width="1719" height="1439" alt="image" src="https://github.com/user-attachments/assets/8b69832a-f0b1-4dd7-b407-5bc19da462e1" />
+
+
 ## 功能特性
 
 - **海量语料**：内置约 116 首带译文和标签的精选诗词；可一键导入 [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) 开源数据集（唐诗 5.7 万+ / 宋诗 5.4 万+ / 宋词 2.1 万+，自动繁转简、去重）
