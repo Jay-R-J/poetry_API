@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>每日一诗 · 诗词 API</title>
+  <style>
+    :root {
+      --ink: #2b2b2b;
+      --ink-soft: #6b6b6b;
+      --paper: #faf6ef;
+      --card: #ffffff;
+      --accent: #b03a2e;
+      --accent-soft: #f4e3df;
+      --line: #e8e0d4;
+      --radius: 14px;
+      --shadow: 0 8px 30px rgba(60, 40, 20, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+    header { text-align: center; margin-bottom: 36px; }
+    header h1 { font-size: 2rem; letter-spacing: 0.1em; font-weight: 700; }
+    header p { color: var(--ink-soft); margin-top: 6px; font-size: 0.95rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 34px 30px;
+      position: relative;
+    }
+    .card .section-label {
+      display: inline-block;
+      font-size: 0.78rem;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 999px;
+      padding: 2px 12px;
+      letter-spacing: 0.15em;
+      margin-bottom: 18px;
+    }
+    .poem-title { font-size: 1.35rem; font-weight: 700; }
+    .poem-meta { color: var(--ink-soft); font-size: 0.92rem; margin: 4px 0 18px; }
+    .poem-lines { font-size: 1.15rem; letter-spacing: 0.04em; }
+    .poem-lines p { margin: 4px 0; }
+    .poem-tags { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .poem-tags span {
+      font-size: 0.8rem; color: var(--ink-soft);
+      border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px;
+    }
+    .poem-translation {
+      margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--line);
+      color: var(--ink-soft); font-size: 0.92rem;
+    }
+    .actions { display: flex; gap: 12px; margin: 22px 0 40px; flex-wrap: wrap; }
+    button {
+      font-family: inherit; cursor: pointer; border: 1px solid var(--accent);
+      background: var(--accent); color: #fff; border-radius: 999px;
+      padding: 9px 22px; font-size: 0.95rem; letter-spacing: 0.06em;
+      transition: all .18s ease;
+    }
+    button:hover { background: #922e24; border-color: #922e24; }
+    button.ghost { background: transparent; color: var(--accent); }
+    button.ghost:hover { background: var(--accent-soft); }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-bar input, .search-bar select {
+      font-family: inherit; font-size: 0.95rem; padding: 10px 14px;
+      border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink);
+      outline: none; transition: border-color .15s ease;
+    }
+    .search-bar input:focus, .search-bar select:focus { border-color: var(--accent); }
+    .search-bar input[type="text"] { flex: 1; min-width: 160px; }
+    .result-item {
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+      padding: 18px 20px; margin-bottom: 12px; cursor: pointer; transition: all .15s ease;
+    }
+    .result-item:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+    .result-item .r-title { font-weight: 700; font-size: 1.05rem; }
+    .result-item .r-meta { color: var(--ink-soft); font-size: 0.85rem; margin: 2px 0 8px; }
+    .result-item .r-excerpt { font-size: 0.95rem; color: var(--ink); }
+    .muted { color: var(--ink-soft); }
+    .center { text-align: center; }
+    .hidden { display: none; }
+    footer { text-align: center; color: var(--ink-soft); font-size: 0.85rem; margin-top: 40px; }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>每 日 一 诗</h1>
+      <p>基于 Rust + Actix Web 的古诗词 API 演示</p>
+    </header>
+
+    <div class="card" id="daily-card">
+      <span class="section-label">今日推荐</span>
+      <div id="daily-content">
+        <p class="muted">正在加载…</p>
+      </div>
+    </div>
+
+    <div class="actions center">
+      <button id="btn-random">换一首</button>
+      <button id="btn-daily" class="ghost">回到今日</button>
+    </div>
+
+    <div class="card" style="box-shadow:none; background:transparent; border:none; padding:0;">
+      <span class="section-label">搜索</span>
+      <div class="search-bar">
+        <input type="text" id="q-keyword" placeholder="关键词（如：月、春、思乡）" />
+        <input type="text" id="q-author" placeholder="作者（如：李白）" style="flex:0 0 130px;" />
+        <select id="q-dynasty">
+          <option value="">全部朝代</option>
+          <option value="唐">唐</option>
+          <option value="宋">宋</option>
+          <option value="五代">五代</option>
+          <option value="元">元</option>
+          <option value="明">明</option>
+          <option value="清">清</option>
+        </select>
+        <button id="btn-search" class="ghost">搜索</button>
+      </div>
+      <div id="results"><p class="muted center">输入条件搜索，或直接点击「搜索」查看全部</p></div>
+    </div>
+
+    <footer>
+      <p>接口文档见 <a href="/swagger-ui/" target="_blank">/swagger-ui/</a> · 源代码见仓库 README</p>
+    </footer>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function renderPoem(data, el) {
+      const poem = data.data;
+      const lines = poem.content.map((l) => `<p>${l}</p>`).join("");
+      const tags = poem.tags.map((t) => `<span>${t}</span>`).join("");
+      const translation = poem.translation
+        ? `<div class="poem-translation">${poem.translation}</div>`
+        : "";
+      el.innerHTML = `
+        <div class="poem-title">${poem.title}</div>
+        <div class="poem-meta">${poem.dynasty} · ${poem.author}</div>
+        <div class="poem-lines">${lines}</div>
+        <div class="poem-tags">${tags}</div>
+        ${translation}
+      `;
+    }
+
+    async function fetchJson(url) {
+      const res = await fetch(url);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `请求失败（${res.status}）`);
+      }
+      return res.json();
+    }
+
+    async function loadDaily() {
+      try {
+        const data = await fetchJson("/api/v1/poems/daily");
+        renderPoem(data, $("daily-content"));
+      } catch (e) {
+        $("daily-content").innerHTML = `<p class="muted">${e.message}</p>`;
+      }
+    }
+
+    async function loadRandom() {
+      try {
+        const data = await fetchJson("/api/v1/poems/random");
+        renderPoem(data, $("daily-content"));
+      } catch (e) {
+        $("daily-content").innerHTML = `<p class="muted">${e.message}</p>`;
+      }
+    }
+
+    async function search() {
+      const params = new URLSearchParams();
+      const kw = $("q-keyword").value.trim();
+      const author = $("q-author").value.trim();
+      const dynasty = $("q-dynasty").value;
+      if (kw) params.set("keyword", kw);
+      if (author) params.set("author", author);
+      if (dynasty) params.set("dynasty", dynasty);
+      params.set("page", "1");
+      params.set("page_size", "20");
+
+      const box = $("results");
+      box.innerHTML = `<p class="muted center">正在搜索…</p>`;
+      try {
+        const data = await fetchJson(`/api/v1/poems?${params.toString()}`);
+        const items = data.data.items;
+        if (!items.length) {
+          box.innerHTML = `<p class="muted center">没有找到匹配的诗词</p>`;
+          return;
+        }
+        box.innerHTML = items.map((p) => `
+          <div class="result-item" data-id="${p.id}">
+            <div class="r-title">${p.title}</div>
+            <div class="r-meta">${p.dynasty} · ${p.author}</div>
+            <div class="r-excerpt">${p.content.join("，")}。</div>
+          </div>
+        `).join("");
+        box.querySelectorAll(".result-item").forEach((el) => {
+          el.addEventListener("click", () => loadById(el.dataset.id));
+        });
+      } catch (e) {
+        box.innerHTML = `<p class="muted center">${e.message}</p>`;
+      }
+    }
+
+    async function loadById(id) {
+      try {
+        const data = await fetchJson(`/api/v1/poems/${id}`);
+        renderPoem(data, $("daily-content"));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    $("btn-random").addEventListener("click", loadRandom);
+    $("btn-daily").addEventListener("click", loadDaily);
+    $("btn-search").addEventListener("click", search);
+    $("q-keyword").addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
+
+    loadDaily();
+  </script>
+</body>
+</html>

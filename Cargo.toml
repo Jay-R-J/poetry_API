@@ -1,0 +1,30 @@
+[package]
+name = "poem_api"
+version = "0.1.0"
+edition = "2021"
+default-run = "poem_api"
+description = "古诗词 REST API：Rust + Actix Web + SQLite，含每日一诗、搜索、限流、认证与缓存"
+license = "MIT"
+keywords = ["rust", "actix-web", "sqlite", "poetry", "api"]
+categories = ["web-programming::http-server"]
+
+[dependencies]
+actix-cors = "0.7"
+actix-web = { version = "4", features = ["compress-gzip"] }
+ferrous-opencc = "0.4"
+chrono = "0.4"
+dotenvy = "0.15"
+futures-util = "0.3"
+moka = { version = "0.12", features = ["future"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "migrate"] }
+thiserror = "1"
+tracing = "0.1"
+tracing-actix-web = "0.7"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+utoipa = { version = "4", features = ["actix_extras"] }
+utoipa-swagger-ui = { version = "6", features = ["actix-web"] }
+
+[dev-dependencies]
+actix-http = "3"
